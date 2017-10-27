@@ -148,6 +148,9 @@ bplot("A")
 bplot("B")
 bplot("C")
 bplot("D")
+n <- 4+4
+n
+
 QReport1
 QReport2
 boxplot(as.numeric(QReport1[which(QReport1[,1] == "A"),3]), as.numeric(QReport1[which(QReport1[,1] == "B"),3]), as.numeric(QReport1[which(QReport1[,1] == "C"),3]), as.numeric(QReport1[which(QReport1[,1] == "D"),3]), main = "Total Scores by Form", names = c("A","B","C","D"), xlab = "Form", ylab="Scores")
