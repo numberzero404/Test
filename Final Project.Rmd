@@ -1,0 +1,154 @@
+---
+title: "Final Project"
+author: "Lynsie Warr"
+date: "June 7, 2017"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Read in the data and put into dataframes:
+
+```{R readdata, echo=FALSE}
+##read data
+forma <- read.table('C:/Users/lynsi/Downloads/Data.and.Domains/FormA.csv', header=FALSE, sep=",", row.names=1)
+formb <- read.table('C:/Users/lynsi/Downloads/Data.and.Domains/FormB.csv', header=FALSE, sep=",", row.names=1)
+formc <- read.table('C:/Users/lynsi/Downloads/Data.and.Domains/FormC.csv', header=FALSE, sep=",", row.names=1)
+formd <- read.table('C:/Users/lynsi/Downloads/Data.and.Domains/FormD.csv', header=FALSE, sep=",", row.names=1)
+##add domain data later
+
+DomainA <- data.frame(read.table('C:/Users/lynsi/Downloads/Data.and.Domains/Domains FormA.csv', header=TRUE, sep=","), stringsAsFactors = FALSE)
+names(DomainA) <- c("Domain", "Number", "Question")
+DomainB <- data.frame(read.table('C:/Users/lynsi/Downloads/Data.and.Domains/Domains FormB.csv', header=TRUE, sep=","), stringsAsFactors = FALSE)
+names(DomainB) <- c("Domain", "Number", "Question")
+DomainC <- data.frame(read.table('C:/Users/lynsi/Downloads/Data.and.Domains/Domains FormC.csv', header=TRUE, sep=","), stringsAsFactors = FALSE)
+names(DomainC) <- c("Domain", "Number", "Question")
+DomainD <- data.frame(read.table('C:/Users/lynsi/Downloads/Data.and.Domains/Domains FormD.csv', header=TRUE, sep=","), stringsAsFactors = FALSE)
+names(DomainD) <- c("Domain", "Number", "Question")
+
+Keya <- data.frame(forma[1,])
+colnames(Keya) <- paste("Q", 1:150)
+Keyb <- data.frame(formb[1,])
+colnames(Keyb) <- paste("Q", 1:150)
+Keyc <- data.frame(formc[51,])
+colnames(Keyc) <- paste("Q", 1:150)
+Keyd <- data.frame(formd[25,])
+colnames(Keyd) <- paste("Q", 1:150)
+
+Forma <- data.frame(forma[2:51,])
+colnames(Forma) <- paste("Q", 1:150)
+Formb <- data.frame(formb[2:50,])
+colnames(Formb) <- paste("Q", 1:150)
+Formc <- data.frame(formc[1:50,])
+colnames(Formc) <- paste("Q", 1:150)
+Formda <- data.frame(formd[1:24,])
+Formdb <- data.frame(formd[26:51,])
+Formd <- rbind(Formda, Formdb)
+colnames(Formd) <- paste("Q", 1:150)
+
+```
+
+
+Create reports
+```{r reports, echo=FALSE}
+reportgen <- function (Form, Key, Domain, FName) {
+all_sums <- NULL
+all_means <- NULL
+report <- NULL
+r <- 1
+for (a in 1:(dim(Form)[1]))
+{
+  student_ans <- Form[a,]
+  student_scores <- (student_ans == Key)
+  student_sum <- sum(student_scores)
+  student_mean <- mean(student_scores)
+  all_sums <- c(all_sums, student_sum)
+  all_means <- c(all_means, student_mean)
+  studomains <- NULL
+  for (i in 1:5)
+  {
+    studomains <- c(studomains, sum(student_scores[which(Domain[,2] == i)]), mean(student_scores[which(Domain[,2] == i)]))
+  }
+  reportline <- NULL
+  reportline <- c(row.names(student_scores), FName, student_sum, student_mean,
+                  studomains)
+
+report <- rbind(report, reportline)
+}
+return(report)
+}
+
+Report <- rbind(reportgen(Forma, Keya, DomainA, "A"), reportgen(Formb, Keyb, DomainB, "B"), reportgen(Formc, Keyc, DomainC, "C"), reportgen(Formd, Keyd, DomainD, "D"))
+colnames(Report) <- c("StudentID", "Form", "Score", "Overall %", "Domain 1", "Domain 1 %", "Domain 2", "Domain 2 %", "Domain 3", "Domain 3 %", "Domain 4", "Domain 4 %", "Domain 5", "Domain 5 %")
+row.names(Report) <- NULL
+Report1 <- Report[(order(as.numeric(Report[,1]))),]
+Report2 <- Report[(order(Report[,4])),]
+Report2 <- Report2[,c(1,2,4,3,6,5,8,7,10,9,12,11,14,13)]
+
+#BY QUESTIONS:
+
+qreportgen <- function (Form, Key, Fname)
+{
+  q_sums <- NULL
+  q_means <- NULL
+  q_form <- NULL
+  for (q in 1:150)
+{
+  q_ans <- as.vector(Form[,q])
+  s <- 1
+  ans <- NULL
+  for (s in 1:dim(Form)[1])
+  {
+    a <- q_ans[s] == Key[q]
+    ans <- c(ans, a)
+  }
+  qsum <- sum(ans)
+  qmean <- mean(ans)
+  q_sums <- c(q_sums, qsum)
+  q_means <- c(q_means, qmean)
+  q_form <- c(q_form, Fname)
+  }
+  qreport <- matrix(nrow=150, ncol=4)
+  qreport[,1] <- 1:150
+  qreport[,2] <- q_form
+  qreport[,3] <- q_sums
+  qreport[,4] <- q_means
+  return(qreport)
+}
+
+QReporta <- qreportgen(Forma, Keya, "A")
+QReportb <- qreportgen(Formb, Keyb, "B")
+QReportc <- qreportgen(Formc, Keyc, "C")
+QReportd <- qreportgen(Formd, Keyd, "D")
+QReport <- rbind(QReporta, QReportb, QReportc, QReportd)
+QReport1 <- matrix(nrow=600, ncol=3)
+QReport1[,1] <- QReport[,2]
+QReport1[,2] <- QReport[,1]
+QReport1[,3] <- QReport[,4]
+row.names(QReport1) <- NULL
+colnames(QReport1) <- c("Form", "Question", "Overall Percent")
+QReport <- QReport[(order(QReport[,4])),]
+QReport2 <- matrix(nrow=600, ncol=3)
+QReport2[,1] <- QReport[,4]
+QReport2[,2] <- QReport[,2]
+QReport2[,3] <- QReport[,1]
+colnames(QReport2) <- c("Overall Percent", "Form", "Question")
+```
+
+```{r printreports, echo=FALSE}
+Report1
+Report2
+boxplot(as.numeric(Report[,6]), as.numeric(Report[,8]), as.numeric(Report[,10]), as.numeric(Report[,12]), as.numeric(Report[,14]) , main = "Total Scores by Domain", names = 1:5, xlab = "Domain", ylab="Scores")
+bplot <- function(Form) {
+boxplot(as.numeric(Report[which(Report[,2] == Form),6]), as.numeric(Report[which(Report[,2] == Form),8]), as.numeric(Report[which(Report[,2] == Form),10]), as.numeric(Report[which(Report[,2] == Form),12]), as.numeric(Report[which(Report[,2] == Form),14]) , main = paste("Total Scores by Domain ( Form", Form,")"), names = 1:5, xlab = "Domain", ylab="Scores")
+}
+bplot("A")
+bplot("B")
+bplot("C")
+bplot("D")
+QReport1
+QReport2
+boxplot(as.numeric(QReport1[which(QReport1[,1] == "A"),3]), as.numeric(QReport1[which(QReport1[,1] == "B"),3]), as.numeric(QReport1[which(QReport1[,1] == "C"),3]), as.numeric(QReport1[which(QReport1[,1] == "D"),3]), main = "Total Scores by Form", names = c("A","B","C","D"), xlab = "Form", ylab="Scores")
+```
